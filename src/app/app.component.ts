@@ -38,30 +38,67 @@ export class AppComponent implements OnInit {
 
     // Inicio da chamada da Promise
     this.minhaPromise('Alice')
-    .then(result => console.log(`%c Promise result: ` + result, `color: lawngreen; background: #10100F;`))
-    
+      .then(result => console.log(`%c Promise result: ` + result, `color: lawngreen; background: #10100F;`))
+
     this.minhaPromise('André')
-    .then(result => this.logStyle('Promise result: ', 'green', result))
-    .catch(erro => this.logStyle('Promise erro: ', 'lime', erro))
+      .then(result => this.logStyle('Promise result: ', 'green', result))
+      .catch(erro => this.logStyle('Promise erro: ', 'lime', erro))
     // Fim da chamada da Promise
-    
+
     // Inicio da chamada da Oservable
     this.minhaObservable('')
-    .subscribe(
-      result => this.logStyle('Observable: ', 'magenta', result),
-      erro => this.logStyle('Observable erro: ','magenta', erro))
+      .subscribe(
+        result => this.logStyle('Observable: ', 'magenta', result),
+        erro => this.logStyle('Observable erro: ', 'magenta', erro))
     // Fim da chamada da Oservable
-    
+
     // Inicio da chamada da Observable com Observer customizado
     const observer = {
       next: (valor: any) => this.logStyle('NEXT: Observable com observer customizado: ', 'cyan', valor),
       error: (erro: any) => this.logStyle('ERRO: Observable com observer customizado: ', 'cyan', erro),
-      complete: () => this.logStyle('FIM: Observable com observer customizado: ', 'yellow', ''),   
+      complete: () => this.logStyle('FIM: Observable com observer customizado: ', 'yellow', ''),
     }
 
     const observable = this.minhaObservable('Alice')
     observable.subscribe(observer);
-    // Fim da chamada daObservable com Observer customizado
+    // Fim da chamada da Observable com Observer customizado
+
+    // Inicio da chamada da Observable usuario
+    const observerUsuario = {
+      next: (valor: any) => this.logStyle('NEXT: Observable Usuario observer customizado: ', 'turquoise', JSON.stringify(valor, null, 2)),
+      error: (erro: any) => this.logStyle('ERRO: Observable Usuario observer customizado: ', 'red', erro),
+      complete: () => this.logStyle('FIM: Observable Usuario observer customizado: ', 'yellow', ''),
+    }
+
+    const observableUsarioErro = this.usuarioObservable('André', 'admin@admin.com')
+    observableUsarioErro.subscribe(observerUsuario);
+
+    const observableUsario = this.usuarioObservable('Admin', 'admin@admin.com')
+    observableUsario.subscribe(observerUsuario);
+    // Fim da chamada da Observable usuario
+
+    // Inicio camada com unsubscaribe
+
+    const observerUsuarioUnsubscribe = {
+      next: (valor: any) => this.logStyle('NEXT: Observable Usuario Unsubscribe: ', 'dodgerblue', JSON.stringify(valor, null, 2)),
+      error: (erro: any) => this.logStyle('ERRO: Observable Usuario Unsubscribe: ', 'red', erro),
+      complete: () => this.logStyle('FIM: Observable Usuario Unsubscribe: ', 'yellow', ''),
+    }
+
+    setTimeout(() => {
+      const observableUsarioUnsubscribe = this.usuarioObservable('Admin', 'admin@admin.com')
+      const subscription = observableUsarioUnsubscribe.subscribe(observerUsuarioUnsubscribe);
+
+      setTimeout(() => {
+        subscription.unsubscribe();
+        console.log('Ecerrado ', subscription.closed); 
+      }, 3500);
+    }, 5000);
+
+
+
+    // Fim camada com unsubscaribe
+
   }
   title = 'rxjs';
 
@@ -102,8 +139,48 @@ export class AppComponent implements OnInit {
 
   // Final Observable
 
+  // Inicio Observable Usuario
+
+  usuarioObservable(nome: string, email: string): Observable<Usuario> {
+    return new Observable(subscriber => {
+      if (nome === 'Admin') {
+        let usuario = new Usuario(nome, email);
+        setTimeout(() => {
+          subscriber.next(usuario);
+        }, 1000);
+        setTimeout(() => {
+          subscriber.next(usuario);
+        }, 2000);
+        setTimeout(() => {
+          subscriber.next(usuario);
+        }, 3000);
+        setTimeout(() => {
+          subscriber.next(usuario);
+        }, 4000);
+        setTimeout(() => {
+          subscriber.complete();
+        }, 5000);
+      }
+      else {
+        subscriber.error('Ops! Ocorreu um erro!');
+      }
+    });
+  }
+
+  // Fim Observable Usuario
+
   escrever(texto: string) {
     console.log(texto);
   }
 
+}
+
+export class Usuario {
+  constructor(nome: string, email: string) {
+    this.nome = nome;
+    this.email = email;
+  }
+
+  nome: string;
+  email: string;
 }
