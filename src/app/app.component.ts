@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -27,16 +28,44 @@ import { Component, OnInit } from '@angular/core';
   `,
   styles: []
 })
-export class AppComponent implements OnInit{
-  ngOnInit(): void {
-    this.minhaPromise('Alice')
-    .then(result => console.log(result))
 
+export class AppComponent implements OnInit {
+  logStyle(msg: string, cor: string, log: any) {
+    return console.log(`%c ${msg}` + log, `color: ${cor}; background: #10100F;`)
+  }
+
+  ngOnInit(): void {
+
+    // Inicio da chamada da Promise
+    this.minhaPromise('Alice')
+    .then(result => console.log(`%c Promise result: ` + result, `color: lawngreen; background: #10100F;`))
+    
     this.minhaPromise('André')
-    .then(result => console.log(result))
-    .catch(erro => console.log(erro))
+    .then(result => this.logStyle('Promise result: ', 'green', result))
+    .catch(erro => this.logStyle('Promise erro: ', 'lime', erro))
+    // Fim da chamada da Promise
+    
+    // Inicio da chamada da Oservable
+    this.minhaObservable('')
+    .subscribe(
+      result => this.logStyle('Observable: ', 'magenta', result),
+      erro => this.logStyle('Observable erro: ','magenta', erro))
+    // Fim da chamada da Oservable
+    
+    // Inicio da chamada da Observable com Observer customizado
+    const observer = {
+      next: (valor: any) => this.logStyle('NEXT: Observable com observer customizado: ', 'cyan', valor),
+      error: (erro: any) => this.logStyle('ERRO: Observable com observer customizado: ', 'cyan', erro),
+      complete: () => this.logStyle('FIM: Observable com observer customizado: ', 'yellow', ''),   
+    }
+
+    const observable = this.minhaObservable('Alice')
+    observable.subscribe(observer);
+    // Fim da chamada daObservable com Observer customizado
   }
   title = 'rxjs';
+
+  // Inicio Promise
 
   minhaPromise(nome: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -49,6 +78,32 @@ export class AppComponent implements OnInit{
         reject('Ops! Você não é Alice');
       }
     })
+  }
+
+  // Final Promise
+
+  // Inicio Observable
+
+  minhaObservable(nome: string): Observable<string> {
+    return new Observable(subscriber => {
+      if (nome === 'Alice') {
+        subscriber.next('Olá');
+        subscriber.next('Olá de Novo');
+        setTimeout(() => {
+          subscriber.next('Olá de Novo com delay');
+        }, 2000);
+        subscriber.complete();
+      }
+      else {
+        subscriber.error('Ops! Ocorreu um erro!');
+      }
+    });
+  }
+
+  // Final Observable
+
+  escrever(texto: string) {
+    console.log(texto);
   }
 
 }
